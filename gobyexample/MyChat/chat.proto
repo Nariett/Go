@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package chat;
+
+option go_package = "./chat";
+
+service ChatService{
+    rpc JoinChat(User) returns (stream UserMessage);
+    rpc GetUsers(User) returns (Users);
+    rpc SendMessage (UserMessage) returns (Empty);
+}
+
+message User{
+    string name = 1;
+}
+message Users{
+    string usernames = 1;
+}
+message UserMessage{
+    string sender = 1;
+    string recipient = 2;
+    string message = 3;
+}
+message Empty{}
