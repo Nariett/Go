@@ -19,6 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
+	ChatService_RegUser_FullMethodName     = "/chat.ChatService/RegUser"
+	ChatService_AuthUser_FullMethodName    = "/chat.ChatService/AuthUser"
 	ChatService_JoinChat_FullMethodName    = "/chat.ChatService/JoinChat"
 	ChatService_GetUsers_FullMethodName    = "/chat.ChatService/GetUsers"
 	ChatService_SendMessage_FullMethodName = "/chat.ChatService/SendMessage"
@@ -28,8 +30,10 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ChatServiceClient interface {
+	RegUser(ctx context.Context, in *UserData, opts ...grpc.CallOption) (*ServerResponse, error)
+	AuthUser(ctx context.Context, in *UserData, opts ...grpc.CallOption) (*ServerResponse, error)
 	JoinChat(ctx context.Context, in *User, opts ...grpc.CallOption) (grpc.ServerStreamingClient[UserMessage], error)
-	GetUsers(ctx context.Context, in *User, opts ...grpc.CallOption) (*Users, error)
+	GetUsers(ctx context.Context, in *User, opts ...grpc.CallOption) (*ActiveUsers, error)
 	SendMessage(ctx context.Context, in *UserMessage, opts ...grpc.CallOption) (*Empty, error)
 }
 
@@ -39,6 +43,26 @@ type chatServiceClient struct {
 
 func NewChatServiceClient(cc grpc.ClientConnInterface) ChatServiceClient {
 	return &chatServiceClient{cc}
+}
+
+func (c *chatServiceClient) RegUser(ctx context.Context, in *UserData, opts ...grpc.CallOption) (*ServerResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ServerResponse)
+	err := c.cc.Invoke(ctx, ChatService_RegUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatServiceClient) AuthUser(ctx context.Context, in *UserData, opts ...grpc.CallOption) (*ServerResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ServerResponse)
+	err := c.cc.Invoke(ctx, ChatService_AuthUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *chatServiceClient) JoinChat(ctx context.Context, in *User, opts ...grpc.CallOption) (grpc.ServerStreamingClient[UserMessage], error) {
@@ -60,9 +84,9 @@ func (c *chatServiceClient) JoinChat(ctx context.Context, in *User, opts ...grpc
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type ChatService_JoinChatClient = grpc.ServerStreamingClient[UserMessage]
 
-func (c *chatServiceClient) GetUsers(ctx context.Context, in *User, opts ...grpc.CallOption) (*Users, error) {
+func (c *chatServiceClient) GetUsers(ctx context.Context, in *User, opts ...grpc.CallOption) (*ActiveUsers, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Users)
+	out := new(ActiveUsers)
 	err := c.cc.Invoke(ctx, ChatService_GetUsers_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -84,8 +108,10 @@ func (c *chatServiceClient) SendMessage(ctx context.Context, in *UserMessage, op
 // All implementations must embed UnimplementedChatServiceServer
 // for forward compatibility.
 type ChatServiceServer interface {
+	RegUser(context.Context, *UserData) (*ServerResponse, error)
+	AuthUser(context.Context, *UserData) (*ServerResponse, error)
 	JoinChat(*User, grpc.ServerStreamingServer[UserMessage]) error
-	GetUsers(context.Context, *User) (*Users, error)
+	GetUsers(context.Context, *User) (*ActiveUsers, error)
 	SendMessage(context.Context, *UserMessage) (*Empty, error)
 	mustEmbedUnimplementedChatServiceServer()
 }
@@ -97,10 +123,16 @@ type ChatServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedChatServiceServer struct{}
 
+func (UnimplementedChatServiceServer) RegUser(context.Context, *UserData) (*ServerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegUser not implemented")
+}
+func (UnimplementedChatServiceServer) AuthUser(context.Context, *UserData) (*ServerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthUser not implemented")
+}
 func (UnimplementedChatServiceServer) JoinChat(*User, grpc.ServerStreamingServer[UserMessage]) error {
 	return status.Errorf(codes.Unimplemented, "method JoinChat not implemented")
 }
-func (UnimplementedChatServiceServer) GetUsers(context.Context, *User) (*Users, error) {
+func (UnimplementedChatServiceServer) GetUsers(context.Context, *User) (*ActiveUsers, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUsers not implemented")
 }
 func (UnimplementedChatServiceServer) SendMessage(context.Context, *UserMessage) (*Empty, error) {
@@ -125,6 +157,42 @@ func RegisterChatServiceServer(s grpc.ServiceRegistrar, srv ChatServiceServer) {
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&ChatService_ServiceDesc, srv)
+}
+
+func _ChatService_RegUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserData)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServiceServer).RegUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChatService_RegUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServiceServer).RegUser(ctx, req.(*UserData))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChatService_AuthUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserData)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServiceServer).AuthUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChatService_AuthUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServiceServer).AuthUser(ctx, req.(*UserData))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _ChatService_JoinChat_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -181,6 +249,14 @@ var ChatService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "chat.ChatService",
 	HandlerType: (*ChatServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "RegUser",
+			Handler:    _ChatService_RegUser_Handler,
+		},
+		{
+			MethodName: "AuthUser",
+			Handler:    _ChatService_AuthUser_Handler,
+		},
 		{
 			MethodName: "GetUsers",
 			Handler:    _ChatService_GetUsers_Handler,
