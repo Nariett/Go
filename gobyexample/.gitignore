@@ -1,1 +1,3 @@
 .vscode/
+MyChat/Server/.env
+MyChat/Client/.env

@@ -1,17 +1,23 @@
 package main
 
 import (
-	pb "chat/chat"
+	pb "MyChat/proto"
 	"context"
 	"fmt"
 	"log"
 	"os"
 
+	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 )
 
 func main() {
-	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
+	err := godotenv.Load("../../.env")
+	if err != nil {
+		log.Fatalf("Ошибка загрузки файла .env: %v", err)
+	}
+	dbLocalhost := "localhost:" + os.Getenv("DB_LOCALHOST")
+	conn, err := grpc.Dial(dbLocalhost, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("Ошибка подключения: %v", err)
 	}
@@ -99,13 +105,17 @@ func main() {
 		fmt.Println("Введите сообщение: ")
 		fmt.Scanln(&msg)
 
-		_, err := client.SendMessage(context.Background(), &pb.UserMessage{
-			Sender:    name,
-			Recipient: recipient,
-			Content:   msg,
-		})
-		if err != nil {
-			log.Printf("Ошибка отправки сообщения: %v", err)
+		if len(recipient) != 0 && len(msg) != 0 {
+			_, err := client.SendMessage(context.Background(), &pb.UserMessage{
+				Sender:    name,
+				Recipient: recipient,
+				Content:   msg,
+			})
+			if err != nil {
+				log.Printf("Ошибка отправки сообщения: %v", err)
+			}
+		} else {
+			fmt.Println("Сообщение не отправлено. Введите имя пользователя и сообщение.")
 		}
 	}
 }
