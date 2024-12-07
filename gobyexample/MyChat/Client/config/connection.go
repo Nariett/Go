@@ -8,7 +8,7 @@ import (
 )
 
 func GetConnStr() string {
-	err := godotenv.Load("../../.env")
+	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatalf("Ошибка загрузки файла .env: %v", err)
 	}
