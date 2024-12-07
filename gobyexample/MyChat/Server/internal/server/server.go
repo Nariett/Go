@@ -2,6 +2,7 @@ package server
 
 import (
 	pb "MyChat/proto"
+	"Server/config"
 	"log"
 	"net"
 
@@ -9,7 +10,7 @@ import (
 )
 
 func StartServer() {
-	protocol, dbPort := getProtocolAndPort()
+	protocol, dbPort := config.GetProtocolAndPort()
 	listener, err := net.Listen(protocol, dbPort)
 	if err != nil {
 		log.Fatalf("Ошибка сервера: %v\n", err)

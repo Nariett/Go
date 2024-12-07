@@ -2,27 +2,13 @@ package database
 
 import (
 	pb "MyChat/proto"
+	"Server/config"
 	"database/sql"
-	"fmt"
 	"log"
-	"os"
-
-	"github.com/joho/godotenv"
 )
 
-func buildConnStr() string {
-	err := godotenv.Load("../../.env")
-	if err != nil {
-		log.Fatalf("Ошибка загрузки файла .env: %v", err)
-	}
-	dbUser := os.Getenv("DB_USER")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbName := os.Getenv("DB_NAME")
-	dbSSLMode := os.Getenv("DB_SSLMODE")
-	return fmt.Sprintf("user=%s password=%s dbname=%s sslmode=%s", dbUser, dbPassword, dbName, dbSSLMode)
-}
 func RegUser(user *pb.UserData) (*pb.ServerResponse, error) {
-	db, err := sql.Open("postgres", buildConnStr())
+	db, err := sql.Open("postgres", config.BuildConnStr())
 	if err != nil {
 		log.Fatalf("Ошибка поключение к базе данных: %v\n", err)
 	}
@@ -47,7 +33,7 @@ func RegUser(user *pb.UserData) (*pb.ServerResponse, error) {
 	}, nil
 }
 func AuthUser(user *pb.UserData) (*pb.ServerResponse, error) {
-	db, err := sql.Open("postgres", buildConnStr())
+	db, err := sql.Open("postgres", config.BuildConnStr())
 	if err != nil {
 		log.Fatalf("Ошибка базы данных: %v\n", err)
 	}

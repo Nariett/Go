@@ -1,4 +1,4 @@
-package server
+package config
 
 import (
 	"fmt"
@@ -8,11 +8,14 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func buildConnStr() string {
-	err := godotenv.Load("../../.env")
-	if err != nil {
+func LoadEnv() {
+	if err := godotenv.Load("../../.env"); err != nil {
 		log.Fatalf("Ошибка загрузки файла .env: %v", err)
 	}
+}
+
+func BuildConnStr() string {
+	LoadEnv()
 	dbUser := os.Getenv("DB_USER")
 	dbPassword := os.Getenv("DB_PASSWORD")
 	dbName := os.Getenv("DB_NAME")
@@ -20,12 +23,8 @@ func buildConnStr() string {
 	return fmt.Sprintf("user=%s password=%s dbname=%s sslmode=%s", dbUser, dbPassword, dbName, dbSSLMode)
 }
 
-func getProtocolAndPort() (protocol, port string) {
-	err := godotenv.Load("../../.env")
-
-	if err != nil {
-		log.Fatalf("Ошибка загрузки файла .env: %v", err)
-	}
+func GetProtocolAndPort() (protocol, port string) {
+	LoadEnv()
 	dbProtocol := os.Getenv("PROTOCOL")
 	dbPort := os.Getenv("DB_PORT")
 	return dbProtocol, dbPort

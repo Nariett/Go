@@ -1,116 +1,49 @@
 package main
 
 import (
+	"Client/config"
+	"Client/internal/chat"
 	pb "MyChat/proto"
-	"context"
 	"fmt"
 	"log"
-	"os"
 
-	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 )
 
 func main() {
-	err := godotenv.Load("../../.env")
-	if err != nil {
-		log.Fatalf("Ошибка загрузки файла .env: %v", err)
-	}
-	dbLocalhost := "localhost:" + os.Getenv("DB_LOCALHOST")
-	conn, err := grpc.Dial(dbLocalhost, grpc.WithInsecure())
+
+	conn, err := grpc.Dial(config.GetConnStr(), grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("Ошибка подключения: %v", err)
 	}
 	defer conn.Close()
+	client := chat.NewChatRepository(pb.NewChatServiceClient(conn))
 
-	client := pb.NewChatServiceClient(conn)
+	name := chat.InitUser(client)
 
-	var (
-		name     string
-		password string
-		flag     bool = false
-	)
-	var value int
-	for {
-		fmt.Println("1 - Войти в чат\n2 - Зарегистрироваться в чате\n3 - Выйти из чата")
-		fmt.Scanln(&value)
-		switch value {
-		case 1:
-			fmt.Println("Введите имя: ")
-			fmt.Scanln(&name)
-			fmt.Println("Введите пароль: ")
-			fmt.Scanln(&password)
-			response, err := client.AuthUser(context.Background(), &pb.UserData{Name: name, Password: password})
-			if err != nil {
-				log.Fatalf("Ошибка аутентификации: %v", err)
-			}
-			if response.Success {
-				fmt.Println("Вы вошли в систему!")
-				flag = true
-			} else {
-				fmt.Println(response.Message)
-			}
-		case 2:
-			for {
-				fmt.Println("Введите имя: ")
-				fmt.Scanln(&name)
-				fmt.Println("Введите пароль: ")
-				fmt.Scanln(&password)
-				response, err := client.RegUser(context.Background(), &pb.UserData{Name: name, Password: password})
-				if err != nil {
-					log.Fatalf("Ошибка регистрации: %v", err)
-				}
-				if response.Success {
-					fmt.Println("Вы прошли регистрацию!")
-					break
-				} else {
-					fmt.Println(response.Message)
-				}
-			}
-
-		case 3:
-			fmt.Println("Вы вышли из чата...")
-			os.Exit(1)
-		}
-		if flag {
-			break
-		}
-	}
-
-	stream, err := client.JoinChat(context.Background(), &pb.User{Name: name})
+	stream, err := client.JoinChat(name)
 	if err != nil {
 		log.Fatalf("Ошибка подключения к чату: %v", err)
 	}
-
-	users, err := client.GetUsers(context.Background(), &pb.User{Name: name})
+	users, err := client.GetUsers(name)
 	if err != nil {
 		log.Fatalf("Ошибка получения списка пользователй: %v", err)
 	}
 	fmt.Println("Список всех пользователей:", users.Usernames)
-	go func() {
-		for {
-			msg, err := stream.Recv()
-			if err != nil {
-				log.Fatalf("Ошибка получения сообщения: %v", err)
-			}
-			fmt.Printf("Новое сообщение от %s: %s\n", msg.Sender, msg.Content)
-		}
-	}()
+
+	go client.ListenChat(stream)
+
 	for {
-		var recipient, msg string
+		var recipient, message string
 
 		fmt.Println("Введите имя, кому хотите отправить сообщение: ")
 		fmt.Scanln(&recipient)
 
 		fmt.Println("Введите сообщение: ")
-		fmt.Scanln(&msg)
+		fmt.Scanln(&message)
 
-		if len(recipient) != 0 && len(msg) != 0 {
-			_, err := client.SendMessage(context.Background(), &pb.UserMessage{
-				Sender:    name,
-				Recipient: recipient,
-				Content:   msg,
-			})
+		if len(recipient) != 0 && len(message) != 0 {
+			_, err := client.SendMessage(name, recipient, message)
 			if err != nil {
 				log.Printf("Ошибка отправки сообщения: %v", err)
 			}

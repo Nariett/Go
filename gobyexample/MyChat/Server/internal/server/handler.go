@@ -5,6 +5,7 @@ import (
 	"Server/internal/database"
 	"context"
 	"log"
+	"strings"
 	"sync"
 )
 
@@ -19,9 +20,7 @@ func newChatServer() *ChatServer {
 		users: make(map[string]chan pb.UserMessage),
 	}
 }
-
 func (c *ChatServer) JoinChat(user *pb.User, stream pb.ChatService_JoinChatServer) error {
-
 	c.mu.Lock()
 	msgChan := make(chan pb.UserMessage, 10)
 	c.users[user.Name] = msgChan
@@ -36,34 +35,34 @@ func (c *ChatServer) JoinChat(user *pb.User, stream pb.ChatService_JoinChatServe
 
 	for msg := range msgChan {
 		if err := stream.Send(&msg); err != nil {
+			log.Printf("Ошибка отправки сообщения клиенту %s: %v", user.Name, err)
 			return err
 		}
 	}
 	return nil
-
 }
-func (c *ChatServer) GetUsers(ctx context.Context, user *pb.User) (*pb.ActiveUsers, error) {
 
+func (c *ChatServer) GetUsers(ctx context.Context, user *pb.User) (*pb.ActiveUsers, error) {
 	c.mu.Lock()
+	defer c.mu.Unlock()
 	var activeUsers []string
 	for key := range c.users {
 		activeUsers = append(activeUsers, key)
 	}
-	c.mu.Unlock()
-	usersRespons := &pb.ActiveUsers{
-		Usernames: activeUsers,
-	}
-	return usersRespons, nil
+	log.Println("Активные пользователи:", strings.Join(activeUsers, " "))
+	return &pb.ActiveUsers{Usernames: activeUsers}, nil
 }
+
 func (c *ChatServer) SendMessage(ctx context.Context, msg *pb.UserMessage) (*pb.Empty, error) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	go func() {
+		c.mu.Lock()
+		defer c.mu.Unlock()
 
-	if ch, exists := c.users[msg.Recipient]; exists {
-		ch <- *msg
-	}
+		if ch, exists := c.users[msg.Recipient]; exists {
+			ch <- *msg
+		}
+	}()
 	return &pb.Empty{}, nil
-
 }
 
 func (c *ChatServer) RegUser(ctx context.Context, user *pb.UserData) (*pb.ServerResponse, error) {
