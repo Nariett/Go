@@ -1,3 +1,3 @@
 run:
 	@echo "Start chat"
-	@cd cmd/client && go run main.go
+	go run main.go
