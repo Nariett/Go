@@ -13,11 +13,16 @@ import (
 
 func main() {
 
-	conn, err := grpc.Dial(config.GetConnStr(), grpc.WithInsecure())
+	config := config.LoadConfig()
+
+	connStr := config.BuildConnStr()
+
+	conn, err := grpc.Dial(connStr, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("Ошибка подключения: %v", err)
 	}
 	defer conn.Close()
+
 	client := chat.NewChatRepository(proto.NewChatServiceClient(conn))
 
 	name := chat.InitUser(client)
@@ -26,6 +31,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Ошибка подключения к чату: %v", err)
 	}
+
 	users, err := client.GetUsers(name)
 	if err != nil {
 		log.Fatalf("Ошибка получения списка пользователй: %v", err)

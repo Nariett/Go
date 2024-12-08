@@ -7,10 +7,22 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func GetConnStr() string {
+type Config struct {
+	DBHost string
+	DBPort string
+}
+
+func LoadConfig() *Config {
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatalf("Ошибка загрузки файла .env: %v", err)
 	}
-	return os.Getenv("DB_HOST") + os.Getenv("DB_PORT")
+	return &Config{
+		DBHost: os.Getenv("DB_HOST"),
+		DBPort: os.Getenv("DB_PORT"),
+	}
+}
+
+func (c *Config) BuildConnStr() string {
+	return c.DBHost + c.DBPort
 }
