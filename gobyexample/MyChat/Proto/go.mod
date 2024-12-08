@@ -1,5 +1,4 @@
-module MyChat/proto
-
+module github.com/Nariett/Go/gobyexample/MyChat/Proto
 
 go 1.23.3
 
