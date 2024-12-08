@@ -1,23 +1,24 @@
 package chat
 
 import (
-	pb "MyChat/proto"
 	"context"
 	"fmt"
 	"log"
 	"os"
+
+	proto "github.com/Nariett/Go/gobyexample/MyChat/Proto"
 )
 
-func (r *ChatRepository) GetUsers(name string) (*pb.ActiveUsers, error) {
-	return r.client.GetUsers(context.Background(), &pb.User{Name: name})
+func (r *ChatRepository) GetUsers(name string) (*proto.ActiveUsers, error) {
+	return r.client.GetUsers(context.Background(), &proto.User{Name: name})
 }
 
-func (r *ChatRepository) JoinChat(name string) (pb.ChatService_JoinChatClient, error) {
-	return r.client.JoinChat(context.Background(), &pb.User{Name: name})
+func (r *ChatRepository) JoinChat(name string) (proto.ChatService_JoinChatClient, error) {
+	return r.client.JoinChat(context.Background(), &proto.User{Name: name})
 }
 
-func (r *ChatRepository) SendMessage(sender, recipient, content string) (*pb.Empty, error) {
-	message := &pb.UserMessage{
+func (r *ChatRepository) SendMessage(sender, recipient, content string) (*proto.Empty, error) {
+	message := &proto.UserMessage{
 		Sender:    sender,
 		Recipient: recipient,
 		Content:   content,
@@ -29,7 +30,7 @@ func (r *ChatRepository) SendMessage(sender, recipient, content string) (*pb.Emp
 	return response, nil
 }
 
-func (r *ChatRepository) ListenChat(stream pb.ChatService_JoinChatClient) {
+func (r *ChatRepository) ListenChat(stream proto.ChatService_JoinChatClient) {
 	for {
 		msg, err := stream.Recv()
 		if err != nil {

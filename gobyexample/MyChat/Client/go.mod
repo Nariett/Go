@@ -3,7 +3,7 @@ module Client
 go 1.23.3
 
 require (
-	MyChat/proto v0.0.0-00010101000000-000000000000
+	github.com/Nariett/Go/gobyexample/MyChat/Proto v0.0.0-20241208122900-f6d12be6892f
 	github.com/joho/godotenv v1.5.1
 	google.golang.org/grpc v1.68.1
 )
@@ -15,5 +15,3 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240903143218-8af14fe29dc1 // indirect
 	google.golang.org/protobuf v1.35.2 // indirect
 )
-
-replace MyChat/proto => ../Proto

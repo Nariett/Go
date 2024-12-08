@@ -3,11 +3,12 @@ package main
 import (
 	"Client/config"
 	"Client/internal/chat"
-	pb "MyChat/proto"
 	"fmt"
 	"log"
 
 	"google.golang.org/grpc"
+
+	proto "github.com/Nariett/Go/gobyexample/MyChat/Proto"
 )
 
 func main() {
@@ -17,7 +18,7 @@ func main() {
 		log.Fatalf("Ошибка подключения: %v", err)
 	}
 	defer conn.Close()
-	client := chat.NewChatRepository(pb.NewChatServiceClient(conn))
+	client := chat.NewChatRepository(proto.NewChatServiceClient(conn))
 
 	name := chat.InitUser(client)
 

@@ -1,31 +1,32 @@
 package server
 
 import (
-	pb "MyChat/proto"
 	"Server/internal/database"
 	"context"
 	"database/sql"
 	"log"
 	"strings"
 	"sync"
+
+	proto "github.com/Nariett/Go/gobyexample/MyChat/Proto"
 )
 
 type ChatServer struct {
-	pb.UnimplementedChatServiceServer
+	proto.UnimplementedChatServiceServer
 	mu    sync.Mutex
-	users map[string]chan pb.UserMessage
+	users map[string]chan proto.UserMessage
 	db    *sql.DB
 }
 
 func newChatServer(db *sql.DB) *ChatServer {
 	return &ChatServer{
-		users: make(map[string]chan pb.UserMessage),
+		users: make(map[string]chan proto.UserMessage),
 		db:    db,
 	}
 }
-func (c *ChatServer) JoinChat(user *pb.User, stream pb.ChatService_JoinChatServer) error {
+func (c *ChatServer) JoinChat(user *proto.User, stream proto.ChatService_JoinChatServer) error {
 	c.mu.Lock()
-	msgChan := make(chan pb.UserMessage, 10)
+	msgChan := make(chan proto.UserMessage, 10)
 	c.users[user.Name] = msgChan
 	c.mu.Unlock()
 
@@ -45,7 +46,7 @@ func (c *ChatServer) JoinChat(user *pb.User, stream pb.ChatService_JoinChatServe
 	return nil
 }
 
-func (c *ChatServer) GetUsers(ctx context.Context, user *pb.User) (*pb.ActiveUsers, error) {
+func (c *ChatServer) GetUsers(ctx context.Context, user *proto.User) (*proto.ActiveUsers, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	var activeUsers []string
@@ -53,10 +54,10 @@ func (c *ChatServer) GetUsers(ctx context.Context, user *pb.User) (*pb.ActiveUse
 		activeUsers = append(activeUsers, key)
 	}
 	log.Println("Активные пользователи:", strings.Join(activeUsers, " "))
-	return &pb.ActiveUsers{Usernames: activeUsers}, nil
+	return &proto.ActiveUsers{Usernames: activeUsers}, nil
 }
 
-func (c *ChatServer) SendMessage(ctx context.Context, msg *pb.UserMessage) (*pb.Empty, error) {
+func (c *ChatServer) SendMessage(ctx context.Context, msg *proto.UserMessage) (*proto.Empty, error) {
 	go func() {
 		c.mu.Lock()
 		defer c.mu.Unlock()
@@ -65,11 +66,11 @@ func (c *ChatServer) SendMessage(ctx context.Context, msg *pb.UserMessage) (*pb.
 			ch <- *msg
 		}
 	}()
-	return &pb.Empty{}, nil
+	return &proto.Empty{}, nil
 }
 
-func (c *ChatServer) RegUser(ctx context.Context, user *pb.UserData) (*pb.ServerResponse, error) {
-	resultChan := make(chan *pb.ServerResponse)
+func (c *ChatServer) RegUser(ctx context.Context, user *proto.UserData) (*proto.ServerResponse, error) {
+	resultChan := make(chan *proto.ServerResponse)
 	errorChan := make(chan error)
 	go func() {
 		responce, err := database.RegUser(c.db, user)
@@ -91,8 +92,8 @@ func (c *ChatServer) RegUser(ctx context.Context, user *pb.UserData) (*pb.Server
 	}
 }
 
-func (c *ChatServer) AuthUser(ctx context.Context, user *pb.UserData) (*pb.ServerResponse, error) {
-	resultChan := make(chan *pb.ServerResponse)
+func (c *ChatServer) AuthUser(ctx context.Context, user *proto.UserData) (*proto.ServerResponse, error) {
+	resultChan := make(chan *proto.ServerResponse)
 	errorChan := make(chan error)
 	go func() {
 		responce, err := database.AuthUser(c.db, user)

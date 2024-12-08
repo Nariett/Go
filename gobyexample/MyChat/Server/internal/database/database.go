@@ -1,16 +1,17 @@
 package database
 
 import (
-	pb "MyChat/proto"
 	"database/sql"
 	"log"
+
+	proto "github.com/Nariett/Go/gobyexample/MyChat/Proto"
 )
 
-func RegUser(db *sql.DB, user *pb.UserData) (*pb.ServerResponse, error) {
+func RegUser(db *sql.DB, user *proto.UserData) (*proto.ServerResponse, error) {
 	result, err := db.Exec("insert into Users (name, password) values ($1, $2)", user.Name, user.Password)
 	if err != nil {
 		log.Printf("Данный ник уже занят: %v\n", err)
-		return &pb.ServerResponse{
+		return &proto.ServerResponse{
 			Success: false,
 			Message: "Пользователь не добавлен в базу данных, так как ник уже занят",
 		}, nil
@@ -20,12 +21,12 @@ func RegUser(db *sql.DB, user *pb.UserData) (*pb.ServerResponse, error) {
 		log.Fatalf("Ошибка получения последнего ID: %v", err)
 	}
 	log.Printf("Добавлен новый пользователь: id: %d, name: %s, password: %s\n", id, user.Name, user.Password)
-	return &pb.ServerResponse{
+	return &proto.ServerResponse{
 		Success: true,
 		Message: "Пользователь добавлен в базу данных",
 	}, nil
 }
-func AuthUser(db *sql.DB, user *pb.UserData) (*pb.ServerResponse, error) {
+func AuthUser(db *sql.DB, user *proto.UserData) (*proto.ServerResponse, error) {
 	rows, err := db.Query("select * from Users where name = $1 and password = $2", user.Name, user.Password)
 	if err != nil {
 		log.Fatalf("Ошибка получения данных: %v\n", err)
@@ -34,10 +35,10 @@ func AuthUser(db *sql.DB, user *pb.UserData) (*pb.ServerResponse, error) {
 
 	if !rows.Next() {
 		log.Printf("Данный пользователь не найден: name:%s password:%s ", user.Name, user.Password)
-		return &pb.ServerResponse{
+		return &proto.ServerResponse{
 			Success: false,
 			Message: "Данный пользователь не найден, повторите попытку.",
 		}, nil
 	}
-	return &pb.ServerResponse{Success: true}, nil
+	return &proto.ServerResponse{Success: true}, nil
 }

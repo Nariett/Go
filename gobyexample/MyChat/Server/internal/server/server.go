@@ -1,17 +1,18 @@
 package server
 
 import (
-	pb "MyChat/proto"
 	"database/sql"
 	"log"
 	"net"
+
+	proto "github.com/Nariett/Go/gobyexample/MyChat/Proto"
 
 	"google.golang.org/grpc"
 )
 
 func StartServer(listener net.Listener, db *sql.DB) {
 	server := grpc.NewServer()
-	pb.RegisterChatServiceServer(server, newChatServer(db))
+	proto.RegisterChatServiceServer(server, newChatServer(db))
 
 	log.Println("gRPC-сервер запущен")
 	if err := server.Serve(listener); err != nil {
