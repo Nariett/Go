@@ -4,6 +4,7 @@ import (
 	pb "MyChat/proto"
 	"Server/internal/database"
 	"context"
+	"database/sql"
 	"log"
 	"strings"
 	"sync"
@@ -13,11 +14,13 @@ type ChatServer struct {
 	pb.UnimplementedChatServiceServer
 	mu    sync.Mutex
 	users map[string]chan pb.UserMessage
+	db    *sql.DB
 }
 
-func newChatServer() *ChatServer {
+func newChatServer(db *sql.DB) *ChatServer {
 	return &ChatServer{
 		users: make(map[string]chan pb.UserMessage),
+		db:    db,
 	}
 }
 func (c *ChatServer) JoinChat(user *pb.User, stream pb.ChatService_JoinChatServer) error {
@@ -69,7 +72,7 @@ func (c *ChatServer) RegUser(ctx context.Context, user *pb.UserData) (*pb.Server
 	resultChan := make(chan *pb.ServerResponse)
 	errorChan := make(chan error)
 	go func() {
-		responce, err := database.RegUser(user)
+		responce, err := database.RegUser(c.db, user)
 		if err != nil {
 			errorChan <- err
 			return
@@ -92,7 +95,7 @@ func (c *ChatServer) AuthUser(ctx context.Context, user *pb.UserData) (*pb.Serve
 	resultChan := make(chan *pb.ServerResponse)
 	errorChan := make(chan error)
 	go func() {
-		responce, err := database.AuthUser(user)
+		responce, err := database.AuthUser(c.db, user)
 		if err != nil {
 			errorChan <- err
 			return

@@ -2,23 +2,19 @@ package server
 
 import (
 	pb "MyChat/proto"
-	"Server/config"
+	"database/sql"
 	"log"
 	"net"
 
 	"google.golang.org/grpc"
 )
 
-func StartServer() {
-	protocol, dbPort := config.GetProtocolAndPort()
-	listener, err := net.Listen(protocol, dbPort)
-	if err != nil {
-		log.Fatalf("Ошибка сервера: %v\n", err)
-	}
+func StartServer(listener net.Listener, db *sql.DB) {
 	server := grpc.NewServer()
-	pb.RegisterChatServiceServer(server, newChatServer())
-	log.Printf("Сервер запущен на порту: %s", dbPort)
+	pb.RegisterChatServiceServer(server, newChatServer(db))
+
+	log.Println("gRPC-сервер запущен")
 	if err := server.Serve(listener); err != nil {
-		log.Fatalf("Ошибка сервера: %v\n", err)
+		log.Fatalf("Ошибка запуска gRPC-сервера: %v", err)
 	}
 }

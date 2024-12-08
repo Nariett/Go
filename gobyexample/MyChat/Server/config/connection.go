@@ -8,24 +8,34 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func LoadEnv() {
+type Config struct {
+	DBUser     string
+	DBPassword string
+	DBName     string
+	DBSSLMode  string
+	Protocol   string
+	DBPort     string
+}
+
+func LoadConfig() *Config {
 	if err := godotenv.Load(".env"); err != nil {
 		log.Fatalf("Ошибка загрузки файла .env: %v", err)
 	}
+
+	return &Config{
+		DBUser:     os.Getenv("DB_USER"),
+		DBPassword: os.Getenv("DB_PASSWORD"),
+		DBName:     os.Getenv("DB_NAME"),
+		DBSSLMode:  os.Getenv("DB_SSLMODE"),
+		Protocol:   os.Getenv("PROTOCOL"),
+		DBPort:     os.Getenv("DB_PORT"),
+	}
 }
 
-func BuildConnStr() string {
-	LoadEnv()
-	dbUser := os.Getenv("DB_USER")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbName := os.Getenv("DB_NAME")
-	dbSSLMode := os.Getenv("DB_SSLMODE")
-	return fmt.Sprintf("user=%s password=%s dbname=%s sslmode=%s", dbUser, dbPassword, dbName, dbSSLMode)
+func (c *Config) BuildConnStr() string {
+	return fmt.Sprintf("user=%s password=%s dbname=%s sslmode=%s", c.DBUser, c.DBPassword, c.DBName, c.DBSSLMode)
 }
 
-func GetProtocolAndPort() (protocol, port string) {
-	LoadEnv()
-	dbProtocol := os.Getenv("PROTOCOL")
-	dbPort := os.Getenv("DB_PORT")
-	return dbProtocol, dbPort
+func (c *Config) GetProtocolAndPort() (protocol, port string) {
+	return c.Protocol, c.DBPort
 }
