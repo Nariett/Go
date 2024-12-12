@@ -15,6 +15,8 @@ type Config struct {
 	DBSSLMode  string
 	Protocol   string
 	DBPort     string
+	LPort      string
+	DBHost     string
 }
 
 func LoadConfig() *Config {
@@ -29,13 +31,15 @@ func LoadConfig() *Config {
 		DBSSLMode:  os.Getenv("DB_SSLMODE"),
 		Protocol:   os.Getenv("PROTOCOL"),
 		DBPort:     os.Getenv("DB_PORT"),
+		LPort:      os.Getenv("LPORT"),
+		DBHost:     os.Getenv("DB_HOST"),
 	}
 }
 
 func (c *Config) BuildConnStr() string {
-	return fmt.Sprintf("user=%s password=%s dbname=%s sslmode=%s", c.DBUser, c.DBPassword, c.DBName, c.DBSSLMode)
+	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", c.DBHost, c.DBPort, c.DBUser, c.DBPassword, c.DBName, c.DBSSLMode)
 }
 
 func (c *Config) GetProtocolAndPort() (protocol, port string) {
-	return c.Protocol, c.DBPort
+	return c.Protocol, fmt.Sprintf(":%s", c.LPort)
 }

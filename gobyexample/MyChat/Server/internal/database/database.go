@@ -16,9 +16,9 @@ func RegUser(db *sql.DB, user *proto.UserData) (*proto.ServerResponse, error) {
 			Message: "Пользователь не добавлен в базу данных, так как ник уже занят",
 		}, nil
 	}
-	id, err := result.LastInsertId()
+	id, err := result.RowsAffected()
 	if err != nil {
-		log.Fatalf("Ошибка получения последнего ID: %v", err)
+		log.Fatalf("Ошибка: %v", err)
 	}
 	log.Printf("Добавлен новый пользователь: id: %d, name: %s, password: %s\n", id, user.Name, user.Password)
 	return &proto.ServerResponse{
@@ -27,6 +27,7 @@ func RegUser(db *sql.DB, user *proto.UserData) (*proto.ServerResponse, error) {
 	}, nil
 }
 func AuthUser(db *sql.DB, user *proto.UserData) (*proto.ServerResponse, error) {
+	log.Printf("Найти пользователя %s, %s", user.Name, user.Password) //////
 	rows, err := db.Query("select * from Users where name = $1 and password = $2", user.Name, user.Password)
 	if err != nil {
 		log.Fatalf("Ошибка получения данных: %v\n", err)

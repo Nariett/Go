@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -24,5 +25,5 @@ func LoadConfig() *Config {
 }
 
 func (c *Config) BuildConnStr() string {
-	return c.DBHost + c.DBPort
+	return fmt.Sprintf("%s:%s", c.DBHost, c.DBPort)
 }
