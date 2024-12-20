@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	proto "github.com/Nariett/Go/gobyexample/MyChat/Proto"
+	proto "github.com/Nariett/Go/MyChat/Proto"
 	"github.com/lib/pq"
 )
 

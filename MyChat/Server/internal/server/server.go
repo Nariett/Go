@@ -5,7 +5,7 @@ import (
 	"log"
 	"net"
 
-	proto "github.com/Nariett/Go/gobyexample/MyChat/Proto"
+	proto "github.com/Nariett/Go/MyChat/Proto"
 
 	"google.golang.org/grpc"
 )

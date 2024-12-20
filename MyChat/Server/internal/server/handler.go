@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	proto "github.com/Nariett/Go/gobyexample/MyChat/Proto"
+	proto "github.com/Nariett/Go/MyChat/Proto"
 )
 
 type ChatServer struct {

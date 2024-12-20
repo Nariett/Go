@@ -8,7 +8,7 @@ import (
 
 	"google.golang.org/grpc"
 
-	proto "github.com/Nariett/Go/gobyexample/MyChat/Proto"
+	proto "github.com/Nariett/Go/MyChat/Proto"
 )
 
 func main() {

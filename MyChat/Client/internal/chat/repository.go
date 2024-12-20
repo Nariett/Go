@@ -3,7 +3,7 @@ package chat
 import (
 	"context"
 
-	proto "github.com/Nariett/Go/gobyexample/MyChat/Proto"
+	proto "github.com/Nariett/Go/MyChat/Proto"
 )
 
 type ChatRepository struct {

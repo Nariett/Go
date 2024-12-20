@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	proto "github.com/Nariett/Go/gobyexample/MyChat/Proto"
+	proto "github.com/Nariett/Go/MyChat/Proto"
 )
 
 func (r *ChatRepository) GetUsers(name string) (*proto.ActiveUsers, error) {
